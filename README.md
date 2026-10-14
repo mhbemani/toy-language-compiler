@@ -1,4 +1,4 @@
-# compiler-final-project
+# toy-language-compiler
 
 A small compiler written in C++17 that turns a C-like toy language into LLVM IR.
 Built as a university compilers course project (phase 1 to final).
