@@ -5,6 +5,8 @@
 #include "lexer.h"
 #include <memory>
 #include <stdexcept>  // For std::runtime_error
+#include <string>
+#include <unordered_map>
 
 class Parser {
 public:
@@ -15,6 +17,10 @@ private:
     Lexer& lexer;
     Token currentToken;
     Token peekToken;
+
+    // declared type of every variable seen so far (flat, not scoped): lets '+' pick add vs. concat
+    std::unordered_map<std::string, VarType> declaredTypes;
+    bool isStringOperand(const ASTNode* n) const;
     
     // Core parsing
     void advance();

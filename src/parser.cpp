@@ -108,6 +108,16 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     throw std::runtime_error("Unexpected token in statement");
 }
 
+// '+' on strings (or variables whose type is unknown / not int / float) is concatenation, otherwise addition
+bool Parser::isStringOperand(const ASTNode* n) const {
+    if (dynamic_cast<const StrLiteral*>(n)) return true;
+    if (auto* v = dynamic_cast<const VarRefNode*>(n)) {
+        auto it = declaredTypes.find(v->name);
+        return it == declaredTypes.end() || (it->second != VarType::INT && it->second != VarType::FLOAT);
+    }
+    return false;
+}
+
 std::unique_ptr<ASTNode> Parser::parseVarDecl() {
     VarType type;
     if (currentToken.type == Token::Int) type = VarType::INT;
@@ -130,6 +140,7 @@ std::unique_ptr<ASTNode> Parser::parseVarDecl() {
     }
     if (currentToken.type == Token::Semicolon) {
         advance();
+        declaredTypes[name] = type;
         return std::make_unique<VarDeclNode>(type, name, nullptr);
     }
     if (currentToken.type != Token::Equal) {
@@ -145,6 +156,7 @@ std::unique_ptr<ASTNode> Parser::parseVarDecl() {
     }
     advance(); // Consume ';'
     
+    declaredTypes[name] = type;
     return std::make_unique<VarDeclNode>(type, name, std::move(value));
 }
 
@@ -178,8 +190,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
                          throw std::runtime_error("XOR requires boolean operands at line " + std::to_string(currentToken.line));
                      }
                  }
-                 if (dynamic_cast<StrLiteral*>(left.get()) || dynamic_cast<StrLiteral*>(right.get()) ||
-                     dynamic_cast<VarRefNode*>(left.get()) || dynamic_cast<VarRefNode*>(right.get())) {    //   needs to be corrected
+                 if (isStringOperand(left.get()) || isStringOperand(right.get())) {
                      left = std::make_unique<ConcatNode>(std::move(left), std::move(right));
                  } else {
                      op = BinaryOp::ADD;
@@ -209,8 +220,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
                  auto right = parsePrimary();
      
                  if(op == BinaryOp::ADD && currentToken.type == Token::StrLiteral){
-                     if (dynamic_cast<StrLiteral*>(left.get()) || dynamic_cast<StrLiteral*>(right.get()) ||
-                     dynamic_cast<VarRefNode*>(left.get()) || dynamic_cast<VarRefNode*>(right.get())) {    //   needs to be corrected
+                     if (isStringOperand(left.get()) || isStringOperand(right.get())) {
                      left = std::make_unique<ConcatNode>(std::move(left), std::move(right));
                      } else {
                          // error : NOT-string + string -- semantics
@@ -268,8 +278,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
                     throw std::runtime_error("XOR requires boolean operands at line " + std::to_string(currentToken.line));
                 }
             }
-            if (dynamic_cast<StrLiteral*>(left.get()) || dynamic_cast<StrLiteral*>(right.get()) ||
-                dynamic_cast<VarRefNode*>(left.get()) || dynamic_cast<VarRefNode*>(right.get())) {    //   needs to be corrected
+            if (isStringOperand(left.get()) || isStringOperand(right.get())) {
                 left = std::make_unique<ConcatNode>(std::move(left), std::move(right));
             } else {
                 op = BinaryOp::ADD;
@@ -299,8 +308,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
             auto right = parsePrimary();
 
             if(op == BinaryOp::ADD && currentToken.type == Token::StrLiteral){
-                if (dynamic_cast<StrLiteral*>(left.get()) || dynamic_cast<StrLiteral*>(right.get()) ||
-                dynamic_cast<VarRefNode*>(left.get()) || dynamic_cast<VarRefNode*>(right.get())) {    //   needs to be corrected
+                if (isStringOperand(left.get()) || isStringOperand(right.get())) {
                 left = std::make_unique<ConcatNode>(std::move(left), std::move(right));
                 } else {
                     // error : NOT-string + string -- semantics
@@ -698,6 +706,7 @@ std::unique_ptr<ASTNode> Parser::parseVarDeclMultiVariable(VarType type, std::st
         } else {
             throw std::runtime_error("Unsupported value type in declaration");
         }
+        declaredTypes[IdentNames[i]] = type;
         declarations.emplace_back(std::make_unique<VarDeclNode>(type, IdentNames[i], std::move(valueCopy)));
         i++;
     }
@@ -711,6 +720,7 @@ return std::make_unique<MultiVarDeclNode>(std::move(declarations));
 
 std::unique_ptr<ASTNode> Parser::parseVarDeclMultiBoth(VarType type, std::unique_ptr<ASTNode> value, std::vector<std::string> IdentNames) {
     std::vector<std::unique_ptr<VarDeclNode>> declarations;
+    declaredTypes[IdentNames[0]] = type;
     declarations.emplace_back(std::make_unique<VarDeclNode>(type, IdentNames[0], std::move(value)));
     int i = 1;
     while (i < IdentNames.size()) {
@@ -737,6 +747,7 @@ std::unique_ptr<ASTNode> Parser::parseVarDeclMultiBoth(VarType type, std::unique
         } else {
             throw std::runtime_error("Type mismatch in variable declaration(4)");
         }
+        declaredTypes[IdentNames[i]] = type;
         declarations.emplace_back(std::make_unique<VarDeclNode>(type, IdentNames[i], std::move(value)));
         advance();
         i++;

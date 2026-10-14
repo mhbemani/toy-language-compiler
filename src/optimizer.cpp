@@ -300,6 +300,7 @@ std::optional<std::tuple<int, int, int>> Optimizer::getLoopBounds(const LoopNode
         return std::nullopt;
     }
 
+    if (step == 0) return std::nullopt; // step not recognised -> do not unroll
     return std::make_tuple(start, end, step);
 }
 

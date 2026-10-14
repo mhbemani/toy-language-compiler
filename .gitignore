@@ -1,0 +1,17 @@
+# build output
+*.o
+*.dSYM/
+build/
+src/compiler
+src/main
+src/main.ll
+src/output.ll
+
+# editor / OS
+.DS_Store
+.vscode/
+
+# never commit keys
+*.pem
+mymacgitid*
+src/Archive.zip
