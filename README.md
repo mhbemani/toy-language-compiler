@@ -1,5 +1,7 @@
 # toy-language-compiler
 
+[![CI](https://github.com/mhbemani/toy-language-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/mhbemani/toy-language-compiler/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A small compiler written in C++17 that turns a C-like toy language into LLVM IR.
 Built as a university compilers course project (phase 1 to final).
 
