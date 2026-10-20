@@ -1,0 +1,18 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install LLVM
+        run: brew install llvm
+      - name: Build the compiler
+        working-directory: src
+        run: make
+      - name: Compile and run a sample program
+        working-directory: src
+        run: |
+          ./compiler 'int a = 2; int b = 3; print(a + b);' > main.ll
+          /opt/homebrew/opt/llvm/bin/lli main.ll | tee out.txt
+          grep -q 5 out.txt
