@@ -5,14 +5,14 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Install LLVM
-        run: brew install llvm
+      - name: Install LLVM 20
+        run: brew install llvm@20
       - name: Build the compiler
         working-directory: src
-        run: make
+        run: make LLVM_PREFIX=/opt/homebrew/opt/llvm@20
       - name: Compile and run a sample program
         working-directory: src
         run: |
           ./compiler 'int a = 2; int b = 3; print(a + b);' > main.ll
-          /opt/homebrew/opt/llvm/bin/lli main.ll | tee out.txt
+          /opt/homebrew/opt/llvm@20/bin/lli main.ll | tee out.txt
           grep -q 5 out.txt

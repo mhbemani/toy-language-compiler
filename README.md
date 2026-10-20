@@ -31,7 +31,7 @@ print(s);
 
 ## Build and run
 
-Needs LLVM (the makefile expects Homebrew's at `/opt/homebrew/opt/llvm`).
+Needs LLVM 20. The makefile expects Homebrew's at `/opt/homebrew/opt/llvm`; for a different install pass it explicitly, e.g. `make LLVM_PREFIX=/opt/homebrew/opt/llvm@20` after `brew install llvm@20`. Newer LLVM releases (for example 23) removed `IRBuilder::CreateGlobalStringPtr`, which the code generator still uses, so they do not build yet.
 
 ```
 cd src
